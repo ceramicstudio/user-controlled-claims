@@ -348,7 +348,7 @@ export default function Create() {
     const signer = provider.getSigner();
     eas.connect(signer);
     const offchain = await eas.getOffchain();
-    const schemaEncoder = new SchemaEncoder("bool Human");
+    const schemaEncoder = new SchemaEncoder("bool trusted");
     const encoded = schemaEncoder.encodeData([
       { name: "Human", type: "bool", value: true },
     ]);

@@ -10,7 +10,7 @@ export const alchemyApiKey = process.env.REACT_APP_ALCHEMY_API_KEY
 
 
 export const CUSTOM_SCHEMAS = {
-  TRUST_SCHEMA: '0x212cc37b82e80169d444cecddec7d76774cc6dfa4423d33307eab01715dc5efe'
+  TRUST_SCHEMA: '0x776c6c1d76055522753787b3abfdbeeff262cda35eebecaf83059b738698ef62'
 }
 
 dayjs.extend(duration)
