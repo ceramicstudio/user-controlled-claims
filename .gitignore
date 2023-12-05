@@ -1,0 +1,7 @@
+.next
+node_modules/*
+composedb.config.json
+src/__generated__/*
+admin_seed.txt
+.ceramic
+.env

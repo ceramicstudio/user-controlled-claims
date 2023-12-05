@@ -1,0 +1,231 @@
+## our broading claim type
+interface VerifiableClaim 
+@createModel(description: "A verifiable claim interface")
+{
+  controller: DID! @documentAccount
+  recipient: DID! @accountReference
+}
+
+## our overarching VC interface that acts agnostic of our proof type
+interface VerifiableCredential implements VerifiableClaim
+  @createModel(description: "A verifiable credential interface")
+{
+  controller: DID! @documentAccount
+  recipient: DID! @accountReference
+  issuer: Issuer! 
+  context: [String!]! @string(maxLength: 1000) @list(maxLength: 100)
+  type: [String!]! @string(maxLength: 1000) @list(maxLength: 100)
+  credentialSchema: CredentialSchema!
+  credentialStatus: CredentialStatus
+  issuanceDate: DateTime!
+  expirationDate: DateTime
+}
+
+interface Attestation implements VerifiableClaim
+@createModel(description: "An attestation interface")
+{
+  controller: DID! @documentAccount
+  recipient: DID! @accountReference
+  attester: DID! @accountReference
+  trusted: Boolean!
+  uid: String! @string(minLength: 66, maxLength: 66)
+  schema: String! @string(minLength: 66, maxLength: 66)
+  verifyingContract: String! @string(minLength: 42, maxLength: 42)
+  easVersion: String! @string(maxLength: 5)
+  version: Int!
+  chainId: Int! 
+  r: String! @string(minLength: 66, maxLength: 66)
+  s: String! @string(minLength: 66, maxLength: 66)
+  v: Int! 
+  types: [Types] @list(maxLength: 100)
+  expirationTime: DateTime
+  revocationTime: DateTime
+  refUID: String @string(minLength: 66, maxLength: 66)
+  time: Int! 
+  data: String! @string(maxLength: 1000000)
+}
+
+type Issuer {
+  id: String! @string(maxLength: 1000)
+  name: String @string(maxLength: 1000)
+}
+
+type CredentialStatus {
+  id: String! @string(maxLength: 1000)
+  type: String! @string(maxLength: 1000)
+}
+
+type CredentialSchema {
+  id: String! @string(maxLength: 1000)
+  type: String! @string(maxLength: 1000)
+}
+
+## we'll use interfaces for our proof types to generalize them as well - this one's for EIP712
+interface VCEIP712Proof implements VerifiableClaim & VerifiableCredential 
+  @createModel(description: "A verifiable credential interface of type EIP712")
+{
+  controller: DID! @documentAccount
+  recipient: DID! @accountReference
+  issuer: Issuer! 
+  context: [String!]! @string(maxLength: 1000) @list(maxLength: 100)
+  type: [String!]! @string(maxLength: 1000) @list(maxLength: 100)
+  credentialSchema: CredentialSchema!
+  credentialStatus: CredentialStatus
+  issuanceDate: DateTime!
+  expirationDate: DateTime
+  proof: ProofEIP712!
+}
+
+## generalized JWT proof interface
+interface VCJWTProof implements VerifiableClaim & VerifiableCredential 
+  @createModel(description: "A verifiable credential interface of type JWT")
+{
+  controller: DID! @documentAccount
+  recipient: DID! @accountReference
+  issuer: Issuer! 
+  context: [String!]! @string(maxLength: 1000) @list(maxLength: 100)
+  type: [String!]! @string(maxLength: 1000) @list(maxLength: 100)
+  credentialSchema: CredentialSchema!
+  credentialStatus: CredentialStatus
+  issuanceDate: DateTime!
+  expirationDate: DateTime
+  proof: ProofJWT!
+}
+
+type ProofEIP712 {
+  verificationMethod: String! @string(maxLength: 1000)
+  created: DateTime! 
+  proofPurpose: String! @string(maxLength: 1000)
+  type: String! @string(maxLength: 1000)
+  proofValue: String! @string(maxLength: 1000)
+  eip712: EIP712!
+}
+
+type ProofJWT {
+  type: String! @string(maxLength: 1000)
+  jwt: String! @string(maxLength: 100000)
+}
+
+type EIP712 {
+    domain: Domain! 
+    types: ProofTypes!
+    primaryType: String! @string(maxLength: 1000)
+}
+
+type Types {
+  name: String! @string(maxLength: 1000)
+  type: String! @string(maxLength: 1000)
+}
+
+type ProofTypes {
+    EIP712Domain: [Types!]! @list(maxLength: 100)
+    CredentialSchema: [Types!]! @list(maxLength: 100)
+    CredentialSubject: [Types!]! @list(maxLength: 100)
+    Proof: [Types!]! @list(maxLength: 100)
+    VerifiableCredential: [Types!]! @list(maxLength: 100)
+}
+
+type Domain {
+  chainId: Int!
+  name: String! @string(maxLength: 1000)
+  version: String! @string(maxLength: 1000)
+}
+
+################## Account Trust Credentials
+
+type AccountTrustTypes {
+  type: String! @string(maxLength: 1000)
+  scope: String! @string(maxLength: 1000)
+  level: String! @string(maxLength: 1000)
+  reason: [String] @string(maxLength: 1000) @list(maxLength: 100)
+}
+
+type AccountTrustSubject
+{
+  id: DID! @accountReference
+  trusted: Boolean! 
+}
+
+interface AccountTrustCredential implements VerifiableClaim & VerifiableCredential  
+  @createModel(description: "A verifiable credential interface for account trust credentials")
+{
+  controller: DID! @documentAccount
+  recipient: DID! @accountReference
+  issuer: Issuer! 
+  context: [String!]! @string(maxLength: 1000) @list(maxLength: 100)
+  type: [String!]! @string(maxLength: 1000) @list(maxLength: 100)
+  credentialSchema: CredentialSchema!
+  credentialStatus: CredentialStatus
+  issuanceDate: DateTime!
+  expirationDate: DateTime
+  credentialSubject: AccountTrustSubject! 
+}
+
+type AccountAttestation implements VerifiableClaim & Attestation 
+  @createModel(accountRelation: LIST, description: "An account attestation")
+  @createIndex(fields: [{ path: ["time"] }])
+{
+  controller: DID! @documentAccount
+  recipient: DID! @accountReference
+  attester: DID! @accountReference
+  uid: String! @string(minLength: 66, maxLength: 66)
+  schema: String! @string(minLength: 66, maxLength: 66)
+  verifyingContract: String! @string(minLength: 42, maxLength: 42)
+  easVersion: String! @string(maxLength: 5)
+  version: Int!
+  chainId: Int! 
+  r: String! @string(minLength: 66, maxLength: 66)
+  s: String! @string(minLength: 66, maxLength: 66)
+  v: Int! 
+  types: [Types] @list(maxLength: 100)
+  expirationTime: DateTime
+  revocationTime: DateTime
+  refUID: String @string(minLength: 66, maxLength: 66)
+  time: Int! 
+  data: String! @string(maxLength: 1000000)
+  trusted: Boolean!
+}
+
+## EIP712 for Account Trust Credentials
+## Will require SET accountRelation to recipient field
+### Will NOT require field locking - we assume that the issuer might want to update assertions in the future
+type AccountTrustCredential712 implements VerifiableClaim & VerifiableCredential & AccountTrustCredential & VCEIP712Proof 
+  @createModel(accountRelation: LIST, description: "A verifiable credential of type EIP712 for account trust credentials")
+  @createIndex(fields: [{ path: "issuanceDate" }])
+  @createIndex(fields: [{ path: "trusted" }]) {
+  controller: DID! @documentAccount
+  recipient: DID! @accountReference
+  issuer: Issuer! 
+  context: [String!]! @string(maxLength: 1000) @list(maxLength: 100)
+  type: [String!]! @string(maxLength: 1000) @list(maxLength: 100)
+  credentialSchema: CredentialSchema!
+  credentialStatus: CredentialStatus
+  issuanceDate: DateTime!
+  expirationDate: DateTime
+  credentialSubject: AccountTrustSubject! 
+  trusted: Boolean!
+  proof: ProofEIP712!
+}
+
+## define our JWT type that uses a hard-coded credentialSubject specific to our use case
+## Will require SET accountRelation to recipient field
+### Will NOT require field locking - we assume that the issuer might want to update assertions in the future
+type AccountTrustCredentialJWT implements VerifiableClaim & VerifiableCredential & AccountTrustCredential & VCJWTProof 
+  @createModel(accountRelation: LIST, description: "A verifiable credential of type JWT for account trust credentials")
+  @createIndex(fields: [{ path: "issuanceDate" }])
+  @createIndex(fields: [{ path: "trusted" }]) {
+  controller: DID! @documentAccount
+  recipient: DID! @accountReference
+  issuer: Issuer! 
+  context: [String!]! @string(maxLength: 1000) @list(maxLength: 100)
+  type: [String!]! @string(maxLength: 1000) @list(maxLength: 100)
+  credentialSchema: CredentialSchema!
+  credentialStatus: CredentialStatus
+  issuanceDate: DateTime!
+  expirationDate: DateTime
+  credentialSubject: AccountTrustSubject! 
+  trusted: Boolean!
+  proof: ProofJWT!
+}
+
+##################
