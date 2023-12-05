@@ -21,6 +21,7 @@ interface VerifiableCredential implements VerifiableClaim
   expirationDate: DateTime
 }
 
+## our overarching Attestation interface that acts agnostic of our proof type
 interface Attestation implements VerifiableClaim
 @createModel(description: "An attestation interface")
 {
@@ -132,13 +133,6 @@ type Domain {
 }
 
 ################## Account Trust Credentials
-
-type AccountTrustTypes {
-  type: String! @string(maxLength: 1000)
-  scope: String! @string(maxLength: 1000)
-  level: String! @string(maxLength: 1000)
-  reason: [String] @string(maxLength: 1000) @list(maxLength: 100)
-}
 
 type AccountTrustSubject
 {
