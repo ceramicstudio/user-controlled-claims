@@ -33,7 +33,7 @@ export default function Create() {
   const [claim, setClaim] = useState<ClaimTypes>(ClaimTypes.attestation);
   const [loggedIn, setLoggedIn] = useState(false);
   const [destination, setDestination] = useState<string>("");
- 
+
   const [queries, setQueries] = useState<Queries>({
     values: [
       {
@@ -88,7 +88,6 @@ export default function Create() {
       }, // Add an empty query object to fix the type error
     ],
   });
-
 
   const fetcher = async (graphQLParams: Record<string, any>) => {
     const composeClient = new ComposeClient({
@@ -261,7 +260,7 @@ export default function Create() {
         }
       }
     `);
-    console.log(data)
+    console.log(data);
     return data;
   };
 
