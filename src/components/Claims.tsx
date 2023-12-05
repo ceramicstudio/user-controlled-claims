@@ -114,7 +114,7 @@ export default function Create() {
                 "$1:"
               )}
               issuer: {
-                id: "${credential.issuer.id}"
+                id: "${credential.issuer}"
               }
               recipient: "${credential.credentialSubject.id}"  
               trusted: ${credential.credentialSubject.isTrusted}
@@ -275,14 +275,14 @@ export default function Create() {
         "https://www.w3.org/2018/credentials/v1",
         "https://beta.api.schemas.serto.id/v1/public/trusted-reviewer/1.0/ld-context.json",
       ],
-      type: ["VerifiableCredential", "TrustedReviewer"],
+      type: ["VerifiableCredential", "Trusted"],
       credentialSchema: {
-        id: "https://beta.api.schemas.serto.id/v1/public/trusted-reviewer/1.0/json-schema.json",
+        id: "https://beta.api.schemas.serto.id/v1/public/trusted/1.0/json-schema.json",
         type: "JsonSchemaValidator2018",
       },
       credentialSubject: {
         isTrusted: true,
-        id: "did:pkh:eip155:1:0x514e3b94f0287caf77009039b72c321ef5f016e6",
+        id: `did:pkh:eip155:1:${destination.toLowerCase()}`,
       },
     };
     const credentialContext = processEntryToArray(
@@ -294,7 +294,6 @@ export default function Create() {
       "VerifiableCredential"
     );
     //@ts-ignore
-    const issuer = extractIssuer(cred, { removeParameters: true });
     let chainId = 1;
     let issuanceDate = new Date().toISOString();
 
@@ -350,7 +349,7 @@ export default function Create() {
     const offchain = await eas.getOffchain();
     const schemaEncoder = new SchemaEncoder("bool trusted");
     const encoded = schemaEncoder.encodeData([
-      { name: "Human", type: "bool", value: true },
+      { name: "trusted", type: "bool", value: true },
     ]);
     const time = Math.floor(Date.now() / 1000);
     const offchainAttestation = await offchain.signOffchainAttestation(
