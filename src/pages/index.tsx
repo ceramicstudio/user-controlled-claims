@@ -1,8 +1,6 @@
 import Head from "next/head";
 import Nav from "../components/Navbar";
-import styles from "./index.module.css";
-import Credential from "../components/Claims";
-import Attest from "../components/Claims";
+import Attest from "../components/Claim";
 import type { NextPage } from "next";
 import { useEffect, useState } from "react";
 import {  useAccount } from "wagmi";

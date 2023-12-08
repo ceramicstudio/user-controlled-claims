@@ -38,9 +38,9 @@ const compose = new ComposeClient({
 });
 
 let isAuthenticated = false;
-let keySession: DIDSession | undefined; // Initialize keySession as undefined
+let keySeed = "";
 
-const Context = createContext({ compose, isAuthenticated, keySession });
+const Context = createContext({ compose, isAuthenticated, keySeed });
 
 export const ComposeDB = ({ children }: ComposeDBProps) => {
   function StartAuth(isAuthenticated: boolean = false) {
@@ -52,18 +52,42 @@ export const ComposeDB = ({ children }: ComposeDBProps) => {
         walletClient: GetWalletClientResult | undefined
       ) {
         if (walletClient ) {
-          const accountId = await getAccountId(walletClient, walletClient.account.address)
+          // const accountId = await getAccountId(walletClient, walletClient.account.address)
           // const authProvider = new EthereumAuthProvider(walletClient, walletClient.account.address)
-          console.log(walletClient.account.address, accountId)
-          const authMethod = await EthereumWebAuth.getAuthMethod(walletClient, accountId)
-          // change to use specific resource
-          const session = await DIDSession.get(accountId, authMethod, { resources: compose.resources })
+          // console.log(walletClient.account.address, accountId)
+          // const authMethod = await EthereumWebAuth.getAuthMethod(walletClient, accountId)
+          // // change to use specific resource
+          // const session = await DIDSession.get(accountId, authMethod, { resources: compose.resources })
+          // //@ts-ignore
+          // await ceramic.setDID(session.did)
+          const userPrompt =
+            "Give this app permission to read or write your verifiable credential data";
+
+          // const accounts = await window.ethereum.request({
+          //   method: "eth_requestAccounts",
+          // });
           //@ts-ignore
-          await ceramic.setDID(session.did)
-          await session.did.authenticate();
-          console.log("Auth'd:", session.did.id);
-          localStorage.setItem("did", session.did.id);
-          keySession = session;
+          const entropy = await window.ethereum.request({
+            method: "personal_sign",
+            params: [
+              u8a.toString(u8a.fromString(userPrompt), "base16"),
+              walletClient.account.address,
+            ],
+          });
+
+          const seed = hash(u8a.fromString(entropy.slice(2), "base16"));
+          const stringSeed = u8a.toString(seed, "base16");
+          keySeed = stringSeed;
+
+          const did = new DID({
+            //@ts-ignore
+            resolver: KeyResolver.getResolver(),
+            provider: new Ed25519Provider(seed),
+          });
+          await did.authenticate();
+          await ceramic.setDID(did)
+          console.log("Auth'd:", did.id);
+          localStorage.setItem("did", did.id);
           setAuth(true);
         }
       }
@@ -78,7 +102,7 @@ export const ComposeDB = ({ children }: ComposeDBProps) => {
   }
 
   return (
-    <Context.Provider value={{ compose, isAuthenticated, keySession }}>
+    <Context.Provider value={{ compose, isAuthenticated, keySeed }}>
       {children}
     </Context.Provider>
   );
