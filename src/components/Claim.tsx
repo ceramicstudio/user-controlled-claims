@@ -36,32 +36,38 @@ export default function Create() {
   const [queries, setQueries] = useState<Queries>({
     values: [
       {
-        query: `query VerifiableCredentials{
-        verifiableClaimIndex(last: 1){
-          edges{
-            node{
-              recipient{
-                id
-              }
-              controller {
-                id
-              }
-              ...on VerifiableCredential{
-                expirationDate
-                context
-                ...on VCEIP712Proof{
-                  proof{
-                    created
+        query: `query VerifiableCredentials {
+          verifiableClaimIndex(last: 1) {
+            edges {
+              node {
+                recipient {
+                  id
+                }
+                controller {
+                  id
+                }
+                ... on VerifiableCredential {
+                  expirationDate
+                  context
+                  ... on VCEIP712Proof {
+                    proof {
+                      created
+                    }
+                    ... on AccountTrustCredential712 {
+                      trusted
+                    }
                   }
-                  ...on AccountTrustCredential712{
-                    trusted
+                  ... on VCJWTProof {
+                    proof {
+                      type
+                      jwt
+                    }
                   }
                 }
               }
             }
           }
-        }
-      }`,
+        }`,
       },
       {
         query: `query BaseCredentials{
